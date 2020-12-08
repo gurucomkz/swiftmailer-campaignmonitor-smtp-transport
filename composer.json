@@ -19,7 +19,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Gurucomkz\\campaignmmonitor\\": "src"
+      "Gurucomkz\\campaignmonitor\\": "src"
     }
   }
 }
