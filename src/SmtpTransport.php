@@ -13,8 +13,8 @@ use Swift_TransportException;
 class SmtpTransport implements Swift_Transport
 {
 
-    protected $_clientID = null;
-    protected $_apiKey = null;
+    private $_clientID = null;
+    private $_apiKey = null;
 
     /** Connection status */
     protected $_started = true;
@@ -85,14 +85,14 @@ class SmtpTransport implements Swift_Transport
         }
 
         $auth = [
-            'auth' => $this->getApiKey(),
+            'api_key' => $this->getApiKey(),
         ];
         $client_id = $this->getClientID();
 
         $mgClient = new CS_REST_Transactional_ClassicEmail($auth, $client_id);
-        $result = $mgClient->send( $this->getPostData($message), null );
+        $result = $mgClient->send( $this->getPostData($message), null, 'No' );
 
-        return $result->http_status_code == 200 ? 1 : 0;
+        return ($result->http_status_code > 200 && $result->http_status_code < 299) ? 1 : 0;
     }
 
     /**
@@ -111,18 +111,31 @@ class SmtpTransport implements Swift_Transport
      *
      * @return array $postData
      */
+    const HEADER_MAP = [
+        'subject' => 'Subject',
+        'from' => 'From',
+        'to' => 'To',
+        'cc' => 'CC',
+        'bcc' => 'BCC',
+        'reply-to' => 'ReplyTo',
+    ];
+
     protected function getPostData(Swift_Mime_Message $message)
     {
         // get "form", "to" etc..
         $postData = [
-            'Subject' => $message->getSubject(),
-            'From' => $message->getFrom(),
-            'ReplyTo' => $message->getReplyTo(),
-            'To' => $message->getTo(),
-            'CC' => $message->getCc(),
-            'Html' => $message->toString(),
-            'ConsentToTrack' => 'No',
+            'Html' => $message->getBody(),
         ];
+        $messageHeaders = $message->getHeaders();
+
+
+        foreach (self::HEADER_MAP as $swiftHeaderName => $csHeaderName) {
+            /** @var \Swift_Mime_Headers_MailboxHeader $value */
+            if (null !== $value = $messageHeaders->get($csHeaderName)) {
+                $postData[$csHeaderName] = $value->getFieldBody();
+                $messageHeaders->removeAll($csHeaderName);
+            }
+        }
 
         return $postData;
     }
