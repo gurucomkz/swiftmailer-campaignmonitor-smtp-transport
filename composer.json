@@ -1,0 +1,25 @@
+{
+  "name": "gurucomkz/campaignmonitor-smtp-transport",
+  "description": "This component provides SMTP transport for http://createsend.com service. Use it together with Swift_Mailer.",
+  "keywords": ["yii2", "extension", "component", "mailer", "swiftmailer", "mailgun", "smtp transport"],
+  "homepage": "https://bitbucket.org/gurucomkz/swiftmailer-campaignmonitor-smtp-transport",
+  "version": "1.0.0",
+  "type": "silverstripe-vendormodule",
+  "license": "BSD 3-Clause",
+  "authors": [
+    {
+      "name": "Sergey Shevchenko",
+      "homepage": "https://bitbucket.org/gurucomkz/swiftmailer-campaignmonitor-smtp-transport"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0",
+    "campaignmonitor/createsend-php": "^6.1",
+    "swiftmailer/swiftmailer": "~5.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Gurucomkz\\campaignmmonitor\\": "src"
+    }
+  }
+}
