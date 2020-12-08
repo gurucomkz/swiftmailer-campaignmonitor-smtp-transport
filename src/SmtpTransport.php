@@ -4,10 +4,12 @@
 namespace Gurucomkz\campaignmonitor;
 
 use CS_REST_Transactional_ClassicEmail;
+use SilverStripe\Core\Config\Config;
 use Swift_Transport;
 use Swift_Mime_Message;
 use Swift_Events_EventListener;
 use Swift_TransportException;
+use SilverStripe\Control\Email\Email;
 
 
 class SmtpTransport implements Swift_Transport
@@ -91,8 +93,9 @@ class SmtpTransport implements Swift_Transport
 
         $mgClient = new CS_REST_Transactional_ClassicEmail($auth, $client_id);
         $result = $mgClient->send( $this->getPostData($message), null, 'No' );
+        $success = $result->http_status_code > 200 && $result->http_status_code < 299;
 
-        return ($result->http_status_code > 200 && $result->http_status_code < 299) ? 1 : 0;
+        return !!$success;
     }
 
     /**
@@ -128,13 +131,19 @@ class SmtpTransport implements Swift_Transport
         ];
         $messageHeaders = $message->getHeaders();
 
-
         foreach (self::HEADER_MAP as $swiftHeaderName => $csHeaderName) {
             /** @var \Swift_Mime_Headers_MailboxHeader $value */
             if (null !== $value = $messageHeaders->get($csHeaderName)) {
                 $postData[$csHeaderName] = $value->getFieldBody();
                 $messageHeaders->removeAll($csHeaderName);
             }
+        }
+
+        $send_all_emails_to = Config::forClass(Email::class)->get('send_all_emails_to');
+        if($send_all_emails_to && !empty($send_all_emails_to)) {
+            $postData['To'] = $send_all_emails_to;
+            if(isset($postData['BCC'])) unset($postData['BCC']);
+            if(isset($postData['CC'])) unset($postData['CC']);
         }
 
         return $postData;
