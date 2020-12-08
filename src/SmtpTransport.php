@@ -133,7 +133,7 @@ class SmtpTransport implements Swift_Transport
 
         foreach (self::HEADER_MAP as $swiftHeaderName => $csHeaderName) {
             /** @var \Swift_Mime_Headers_MailboxHeader $value */
-            if (null !== $value = $messageHeaders->get($csHeaderName)) {
+            if (null !== $value = $messageHeaders->get($swiftHeaderName)) {
                 $postData[$csHeaderName] = $value->getFieldBody();
                 $messageHeaders->removeAll($csHeaderName);
             }
@@ -149,41 +149,4 @@ class SmtpTransport implements Swift_Transport
         return $postData;
     }
 
-    /**
-     * @param Swift_Mime_Message $message
-     *
-     * @return array
-     */
-    protected function prepareRecipients(Swift_Mime_Message $message)
-    {
-        $headerNames = ['from', 'to', 'bcc', 'cc'];
-        $messageHeaders = $message->getHeaders();
-        $postData = [];
-
-        foreach ($headerNames as $name) {
-            /** @var \Swift_Mime_Headers_MailboxHeader $h */
-            $h = $messageHeaders->get($name);
-            $postData[$name] = $h === null ? [] : $h->getAddresses();
-        }
-
-        // Merge 'bcc' and 'cc' into 'to'.
-        $postData['to'] = array_merge($postData['to'], $postData['bcc'], $postData['cc']);
-        unset($postData['bcc']);
-        unset($postData['cc']);
-
-        // Remove Bcc to make sure it is hidden
-        $messageHeaders->removeAll('bcc');
-
-        return $postData;
-    }
-
-    /**
-     * Get the special o:* headers. https://documentation.mailgun.com/api-sending.html#sending.
-     *
-     * @return array
-     */
-    public static function getMailgunHeaders()
-    {
-        return ['o:tag', 'o:campaign', 'o:deliverytime', 'o:dkim', 'o:testmode', 'o:tracking', 'o:tracking-clicks', 'o:tracking-opens'];
-    }
 }
