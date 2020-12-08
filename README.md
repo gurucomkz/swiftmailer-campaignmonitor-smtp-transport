@@ -1,4 +1,4 @@
-#Mailgun SMTP Transport for Swiftmailer
+# Campaignmonitor SMTP Transport for Swiftmailer for transactional emails
 
 ## Install
 
