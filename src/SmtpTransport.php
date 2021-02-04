@@ -135,7 +135,6 @@ class SmtpTransport implements Swift_Transport
             /** @var \Swift_Mime_Headers_MailboxHeader $value */
             if (null !== $value = $messageHeaders->get($swiftHeaderName)) {
                 $postData[$csHeaderName] = $value->getFieldBody();
-                $messageHeaders->removeAll($csHeaderName);
             }
         }
 
