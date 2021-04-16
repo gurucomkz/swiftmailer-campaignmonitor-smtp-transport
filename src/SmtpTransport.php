@@ -10,7 +10,7 @@ use Swift_Mime_Message;
 use Swift_Events_EventListener;
 use Swift_TransportException;
 use SilverStripe\Control\Email\Email;
-
+use Swift_Attachment;
 
 class SmtpTransport implements Swift_Transport
 {
@@ -93,6 +93,7 @@ class SmtpTransport implements Swift_Transport
 
         $mgClient = new CS_REST_Transactional_ClassicEmail($auth, $client_id);
         $result = $mgClient->send( $this->getPostData($message), null, 'No' );
+
         $success = $result->http_status_code > 200 && $result->http_status_code < 299;
 
         return !!$success;
@@ -143,6 +144,20 @@ class SmtpTransport implements Swift_Transport
             $postData['To'] = $send_all_emails_to;
             if(isset($postData['BCC'])) unset($postData['BCC']);
             if(isset($postData['CC'])) unset($postData['CC']);
+        }
+
+        foreach($message->getChildren() as $child){
+            if(is_a($child, Swift_Attachment::class)) {
+                /** @var Swift_Attachment $child */
+                if(!isset($postData['Attachments'])) {
+                    $postData['Attachments'] = [];
+                }
+                $postData['Attachments'][] = [
+                    "Type" => $child->getContentType(),
+                    "Name" => $child->getFilename(),
+                    "Content" => base64_encode($child->getBody())
+                ];
+            }
         }
 
         return $postData;
